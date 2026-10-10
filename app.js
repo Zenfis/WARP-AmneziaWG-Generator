@@ -128,56 +128,45 @@ H4 = 4${i1Line}
 [Peer]
 PublicKey = ${peerPublicKey}
 Endpoint = ${endpoint}
-AllowedIPs = ${net.allowedIps}
-PersistentKeepalive = ${params.keepalive}`;
+AllowedIPs = ${net.allowedIps}`;
 }
 
 const CUSTOM_PRESET = 'custom';
 const PRESETS = {
     light: {
         name: 'Light — минимальный след',
-        jc: 4, jmin: 8, jmax: 80, mtu: 1280, keepalive: '20-45',
+        jc: 4, jmin: 8, jmax: 80, mtu: 1280,
         tip: 'Минимум мусорных пакетов, быстрое подключение. Подходит для большинства домашних сетей без жёсткой фильтрации.'
     },
     mobile: {
         name: 'Mobile / LTE',
-        jc: 3, jmin: 8, jmax: 80, mtu: 1280, keepalive: '15-25',
+        jc: 3, jmin: 8, jmax: 80, mtu: 1280,
         tip: 'Меньше мусорных пакетов: в мобильных сетях крупные всплески заметнее. Если не подключается — попробуйте Balanced (у некоторых операторов помогает Jc от 6).'
     },
     balanced: {
         name: 'Balanced — Wi-Fi',
-        jc: 6, jmin: 50, jmax: 500, mtu: 1280, keepalive: '20-35',
+        jc: 6, jmin: 50, jmax: 500, mtu: 1280,
         tip: 'Компромисс между маскировкой и скоростью для Wi-Fi и проводного интернета с умеренной фильтрацией.'
     },
     aggressive: {
         name: 'Aggressive — усиленный анти-DPI',
-        jc: 10, jmin: 50, jmax: 1000, mtu: 1280, keepalive: '15-40',
+        jc: 10, jmin: 50, jmax: 1000, mtu: 1280,
         tip: 'Много крупного мусора: сильнее маскирует, но подключение медленнее. Не для мобильных сетей — возможны срабатывания защиты от флуда.'
     }
 };
 const CUSTOM_TIP = 'Свои значения: правьте поля ниже, проверка работает как обычно.';
 const PARAM_DEFAULTS = PRESETS.light;
-
-const PARAM_IDS = ['jc', 'mtu', 'jmin', 'jmax', 'keepalive'];
+const PARAM_IDS = ['jc', 'mtu', 'jmin', 'jmax'];
 const paramInputs = Object.fromEntries(PARAM_IDS.map(id => [id, document.getElementById(id)]));
 
 function setFieldState(id, error, warning) {
     const input = paramInputs[id];
-    if (!input) return;
-
     const errEl = document.getElementById(id + 'Error');
     const warnEl = document.getElementById(id + 'Warn');
-    
-    if (errEl) {
-        errEl.textContent = error || '';
-        errEl.classList.toggle('hidden', !error);
-    }
-    
-    if (warnEl) {
-        warnEl.textContent = !error && warning ? warning : '';
-        warnEl.classList.toggle('hidden', !!error || !warning);
-    }
-    
+    errEl.textContent = error || '';
+    errEl.classList.toggle('hidden', !error);
+    warnEl.textContent = !error && warning ? warning : '';
+    warnEl.classList.toggle('hidden', !!error || !warning);
     input.classList.toggle('border-red-500', !!error);
     input.classList.toggle('border-slate-300', !error);
 }
@@ -188,71 +177,35 @@ function readParams() {
     const warn = {};
 
     for (const id of PARAM_IDS) {
-        if (!paramInputs[id]) continue;
-        
         const raw = paramInputs[id].value.trim();
-        
-        if (id === 'keepalive') {
-            if (!/^(\d+)(-\d+)?$/.test(raw)) {
-                err[id] = 'Введите целое число или диапазон.';
-            } else {
-                 v[id] = raw; 
-            }
+        if (!/^\d+$/.test(raw)) {
+            err[id] = 'Введите целое число.';
         } else {
-            if (!(/^\d+$/.test(raw))) {
-                err[id] = 'Введите целое число.';
-            } else {
-                v[id] = parseInt(raw, 10);
-            }
+            v[id] = parseInt(raw, 10);
         }
     }
 
-    if (!err.jc && v.jc !== undefined) {
+    if (!err.jc) {
         if (v.jc < 1 || v.jc > 128) err.jc = 'Jc должен быть от 1 до 128.';
         else if (v.jc > 12) warn.jc = 'Много мусорных пакетов — подключение может стать медленнее. Обычно хватает 4–12.';
     }
 
-    if (!err.mtu && v.mtu !== undefined) {
+    if (!err.mtu) {
         if (v.mtu < 1280 || v.mtu > 1420) err.mtu = 'MTU должен быть от 1280 до 1420 (в конфиге есть IPv6, меньше 1280 нельзя).';
         else if (v.mtu > 1280) warn.mtu = 'Значение выше 1280 может не работать в некоторых сетях. При проблемах верните 1280.';
     }
 
-    if (!err.jmax && v.jmax !== undefined) {
+    if (!err.jmax) {
         if (v.jmax > 1280) err.jmax = 'Jmax не может быть больше 1280.';
         else if (v.jmax < 1) err.jmax = 'Jmax должен быть больше 0.';
     }
 
-    if (!err.jmin && v.jmin !== undefined) {
+    if (!err.jmin) {
         if (v.jmin < 1) err.jmin = 'Jmin должен быть больше 0.';
         else if (!err.jmax && v.jmin >= v.jmax) err.jmin = 'Jmin должен быть меньше Jmax.';
     }
-    
-if (!err.keepalive && v.keepalive) {
-        const parts = v.keepalive.split('-');
-        if (parts.length === 2) {
-            const min = parseInt(parts[0], 10);
-            const max = parseInt(parts[1], 10);
-            
-            if (min >= max) {
-                err.keepalive = 'Первое число диапазона должно быть меньше второго.';
-            } else if (max - min < 10) {
-                err.keepalive = 'Разница должна быть не менее 10 секунд.';
-            } else if (max > 60) {
-                 warn.keepalive = 'Значения выше 60 могут приводить к зависанию сессии.';
-            }
-        } else if (parts.length === 1) {
-            const val = parseInt(parts[0], 10);
-            
-            if (val > 60) {
-                 warn.keepalive = 'Значения выше 60 могут приводить к зависанию сессии.';
-            } else if (val < 15) {
-                err.keepalive = 'Слишком низкое значение может привести к обнаружению DPI.';
-            }
-        }
-    }
 
     for (const id of PARAM_IDS) setFieldState(id, err[id], warn[id]);
-    
     return Object.keys(err).length ? null : v;
 }
 
@@ -265,20 +218,12 @@ presetSelect.add(new Option('Свои значения (custom)', CUSTOM_PRESET)
 function applyPreset(id) {
     const preset = PRESETS[id];
     if (!preset) return;
-    for (const field of PARAM_IDS) {
-        if (paramInputs[field]) {
-             paramInputs[field].value = preset[field];
-        }
-    }
+    for (const field of PARAM_IDS) paramInputs[field].value = preset[field];
 }
 
 function detectPreset() {
     for (const [id, preset] of Object.entries(PRESETS)) {
-        const isMatch = PARAM_IDS.every(f => {
-            if (!paramInputs[f]) return true;
-            return paramInputs[f].value.trim() === String(preset[f]);
-        });
-        if (isMatch) return id;
+        if (PARAM_IDS.every(f => paramInputs[f].value.trim() === String(preset[f]))) return id;
     }
     return CUSTOM_PRESET;
 }
@@ -395,13 +340,11 @@ function scheduleRender() {
 
 maskDomain.addEventListener('input', scheduleRender);
 for (const id of PARAM_IDS) {
-    if (paramInputs[id]) {
-        paramInputs[id].addEventListener('input', () => {
-            readParams();
-            syncPresetSelect();
-            scheduleRender();
-        });
-    }
+    paramInputs[id].addEventListener('input', () => {
+        readParams();
+        syncPresetSelect();
+        scheduleRender();
+    });
 }
 presetSelect.addEventListener('change', () => {
     if (presetSelect.value !== CUSTOM_PRESET) applyPreset(presetSelect.value);

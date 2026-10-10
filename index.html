@@ -73,31 +73,14 @@
             <select id="presetSelect" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
             <p id="presetTip" class="mt-1 text-xs text-slate-500"></p>
         </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label for="jc" class="block text-sm font-medium text-slate-700 mb-1">Jc</label>
                 <input id="jc" type="text" inputmode="numeric" value="4" autocomplete="off"
                        class="awg-param w-full p-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <p id="jcError" class="mt-1 text-xs text-red-600 hidden"></p>
                 <p id="jcWarn" class="mt-1 text-xs text-amber-600 hidden"></p>
-                <p class="mt-1 text-xs text-slate-500">Кол-во «мусорных» пакетов. Допустимо 1–128, рекомендуется 4–12.</p>
-            </div>
-            <div>
-                <label for="jmin" class="block text-sm font-medium text-slate-700 mb-1">Jmin</label>
-                <input id="jmin" type="text" inputmode="numeric" value="8" autocomplete="off"
-                       class="awg-param w-full p-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <p id="jminError" class="mt-1 text-xs text-red-600 hidden"></p>
-                <p id="jminWarn" class="mt-1 text-xs text-amber-600 hidden"></p>
-                <p class="mt-1 text-xs text-slate-500">Мин. размер (байт). Рекомендуется 8–50.</p>
-            </div>
-            <div>
-                <label for="jmax" class="block text-sm font-medium text-slate-700 mb-1">Jmax</label>
-                <input id="jmax" type="text" inputmode="numeric" value="80" autocomplete="off"
-                       class="awg-param w-full p-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <p id="jmaxError" class="mt-1 text-xs text-red-600 hidden"></p>
-                <p id="jmaxWarn" class="mt-1 text-xs text-amber-600 hidden"></p>
-                <p class="mt-1 text-xs text-slate-500">Макс. размер. Рекомендуется 50–1000.</p>
+                <p class="mt-1 text-xs text-slate-500">Количество «мусорных» пакетов перед рукопожатием. Больше — сложнее заметить, но медленнее подключение. Допустимо 1–128, рекомендуется 4–12.</p>
             </div>
             <div>
                 <label for="mtu" class="block text-sm font-medium text-slate-700 mb-1">MTU</label>
@@ -105,17 +88,24 @@
                        class="awg-param w-full p-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <p id="mtuError" class="mt-1 text-xs text-red-600 hidden"></p>
                 <p id="mtuWarn" class="mt-1 text-xs text-amber-600 hidden"></p>
-                <p class="mt-1 text-xs text-slate-500">Размер пакета. Рекомендуется 1280 (минимум для IPv6).</p>
+                <p class="mt-1 text-xs text-slate-500">Максимальный размер пакета в туннеле. 1280 — самый надёжный вариант (минимум для IPv6). Допустимо 1280–1420; если соединение рвётся или тормозит — верните 1280.</p>
             </div>
-        </div>
-
-        <div>
-            <label for="keepalive" class="block text-sm font-medium text-slate-700 mb-1">PersistentKeepalive</label>
-            <input id="keepalive" type="text" value="25" autocomplete="off"
-                   class="awg-param w-full p-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <p id="keepaliveError" class="mt-1 text-xs text-red-600 hidden"></p>
-            <p id="keepaliveWarn" class="mt-1 text-xs text-amber-600 hidden"></p>
-            <p class="mt-1 text-xs text-slate-500">Интервал пингов (сек.). Рекомендуется диапазон 15-45 (не выше 30 для LTE).</p>
+            <div>
+                <label for="jmin" class="block text-sm font-medium text-slate-700 mb-1">Jmin</label>
+                <input id="jmin" type="text" inputmode="numeric" value="8" autocomplete="off"
+                       class="awg-param w-full p-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p id="jminError" class="mt-1 text-xs text-red-600 hidden"></p>
+                <p id="jminWarn" class="mt-1 text-xs text-amber-600 hidden"></p>
+                <p class="mt-1 text-xs text-slate-500">Минимальный размер мусорного пакета, байт. Должен быть меньше Jmax. Рекомендуется 8–50.</p>
+            </div>
+            <div>
+                <label for="jmax" class="block text-sm font-medium text-slate-700 mb-1">Jmax</label>
+                <input id="jmax" type="text" inputmode="numeric" value="80" autocomplete="off"
+                       class="awg-param w-full p-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p id="jmaxError" class="mt-1 text-xs text-red-600 hidden"></p>
+                <p id="jmaxWarn" class="mt-1 text-xs text-amber-600 hidden"></p>
+                <p class="mt-1 text-xs text-slate-500">Максимальный размер мусорного пакета, байт. Должен быть больше Jmin и не выше 1280. Рекомендуется 50–1000.</p>
+            </div>
         </div>
     </div>
 
@@ -198,6 +188,6 @@
 <script src="quic.js?v=7"></script>
 <script src="masking.js?v=7"></script>
 <script src="network.js?v=7"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
